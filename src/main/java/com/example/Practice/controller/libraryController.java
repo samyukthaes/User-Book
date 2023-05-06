@@ -2,11 +2,15 @@ package com.example.Practice.controller;
 
 import com.example.Practice.entity.Book;
 import com.example.Practice.entity.User;
+import com.example.Practice.exception.IdNotFoundException;
+import com.example.Practice.exception.UserAlreadyPresentException;
 import com.example.Practice.repository.bookRepo;
 import com.example.Practice.repository.userRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -18,7 +22,11 @@ public class libraryController {
     private userRepo repoUser;
 
     @PostMapping("/add")
-    public ResponseEntity<User> addDetails(@RequestBody User user){
+    public ResponseEntity<User> addDetails(@RequestBody User user) throws UserAlreadyPresentException{
+        Optional<User> users = repoUser.findById(user.getId());
+        if(users.isPresent()){
+            throw new UserAlreadyPresentException("This user with id " + user.getId() + "is already present");
+        }
         return ResponseEntity.ok().body(repoUser.save(user));
     }
     @PostMapping("/addBook")
@@ -26,12 +34,27 @@ public class libraryController {
         return ResponseEntity.ok().body(repoBook.save(book));
     }
     @GetMapping("/user/{id}")
-    public ResponseEntity<User> getUserDetails(@PathVariable int id ){
+    public ResponseEntity<User> getUserDetails(@PathVariable int id ) {
+        Optional<User> users = repoUser.findById(id);
+        if(users.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
         return ResponseEntity.ok().body(repoUser.findById(id).orElse(null));
+
     }
+
     @GetMapping("/book/{id}")
-    public ResponseEntity<Book> getBookDetails(@PathVariable int id ){
-        return ResponseEntity.ok().body(repoBook.findById(id).orElse(null));
+    public ResponseEntity<Book> getBookDetails(@PathVariable int id ) throws IdNotFoundException {
+        Optional<Book> buk = repoBook.findById(id);
+        if (buk.isEmpty()) {
+            throw new IdNotFoundException("id not found");
+        } else {
+            return ResponseEntity.ok().body(repoBook.findById(id).orElse(null));
+        }
     }
+
+
+
+
 
 }
