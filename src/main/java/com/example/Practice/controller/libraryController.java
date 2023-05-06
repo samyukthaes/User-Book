@@ -51,6 +51,33 @@ public class libraryController {
         } else {
             return ResponseEntity.ok().body(repoBook.findById(id).orElse(null));
         }
+
+    }
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Book> updateDetails(@RequestBody Book book, @PathVariable int id){
+        Book buk = null;
+        Optional<Book> updatebook = repoBook.findById(id);
+        if(updatebook.isPresent()){
+            buk = updatebook.get();
+            buk.setId(id);
+            buk.setBookName(book.getBookName());
+            repoBook.save(buk);
+            return ResponseEntity.ok().body(buk);
+        }
+        else{
+            return ResponseEntity.noContent().build();
+        }}
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Boolean> deleteBook(@PathVariable int id){
+        Optional<Book> buk = repoBook.findById(id);
+        if(buk.isEmpty()){
+            return ResponseEntity.ok(false);
+        }
+        else{
+            repoBook.deleteById(id);
+            return ResponseEntity.ok(true);
+        }
     }
 
 
